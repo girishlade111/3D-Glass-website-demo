@@ -211,7 +211,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* === Custom Cursor Styles === */
+        /* === Custom Cursor Styles (Updated for Diamond/Tech Look) === */
         @media (min-width: 768px) {
             body {
                 cursor: none; /* Hide default cursor on desktop */
@@ -225,10 +225,9 @@
             width: 8px;
             height: 8px;
             background-color: #60a5fa; /* Blue 400 */
-            border-radius: 50%;
             pointer-events: none;
             z-index: 9999;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) rotate(45deg); /* Diamond Shape */
             box-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
         }
 
@@ -236,23 +235,30 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(96, 165, 250, 0.5);
-            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(96, 165, 250, 0.6);
             pointer-events: none;
             z-index: 9998;
-            transform: translate(-50%, -50%);
-            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            transform: translate(-50%, -50%) rotate(45deg); /* Diamond Shape */
+            transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s, transform 0.3s;
         }
 
         /* Hover State for Cursor */
         body.hovering #cursor-outline {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(96, 165, 250, 0.1);
-            border-color: rgba(96, 165, 250, 0.8);
-            box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+            width: 45px;
+            height: 45px;
+            background-color: rgba(96, 165, 250, 0.15);
+            border-color: rgba(96, 165, 250, 0.9);
+            transform: translate(-50%, -50%) rotate(0deg); /* Snaps to Square on hover */
+            border-radius: 4px;
+            box-shadow: 0 0 25px rgba(96, 165, 250, 0.4);
+        }
+        
+        /* Click Animation */
+        body.clicking #cursor-outline {
+            transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+            background-color: rgba(96, 165, 250, 0.4);
         }
     </style>
 </head>
@@ -609,6 +615,7 @@
                 cursorDot.style.top = `${posY}px`;
 
                 // Outline follows with smooth animation
+                // We only animate left/top here to avoid overwriting CSS transforms (rotation)
                 cursorOutline.animate({
                     left: `${posX}px`,
                     top: `${posY}px`
@@ -619,11 +626,20 @@
             const addHoverClass = () => document.body.classList.add('hovering');
             const removeHoverClass = () => document.body.classList.remove('hovering');
 
+            // Click effects
+            const addClickClass = () => {
+                document.body.classList.add('clicking');
+                setTimeout(() => document.body.classList.remove('clicking'), 200);
+            };
+
             // Attach to all interactive elements
             document.querySelectorAll('a, button, .glass-card, input, textarea, .glass').forEach(el => {
                 el.addEventListener('mouseenter', addHoverClass);
                 el.addEventListener('mouseleave', removeHoverClass);
+                el.addEventListener('mousedown', addClickClass);
             });
+            
+            document.addEventListener('mousedown', addClickClass);
         }
 
         // Scroll Observer for Animations
