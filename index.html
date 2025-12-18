@@ -211,62 +211,73 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* === Custom Cursor Styles (Circular Design) === */
+        /* === Custom Cursor Styles (Sword Design) === */
         @media (min-width: 768px) {
             body {
                 cursor: none; /* Hide default cursor on desktop */
             }
         }
 
-        #cursor-dot {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 10px;
-            height: 10px;
-            background-color: #60a5fa; /* Blue 400 */
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px rgba(96, 165, 250, 0.9);
-        }
-
-        #cursor-outline {
+        #cursor-sword {
             position: fixed;
             top: 0;
             left: 0;
             width: 40px;
             height: 40px;
-            border: 1.5px solid rgba(96, 165, 250, 0.6);
-            border-radius: 50%;
             pointer-events: none;
-            z-index: 9998;
-            transform: translate(-50%, -50%);
-            transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+            z-index: 9999;
+            /* Adjust translate to align tip of sword with mouse position */
+            /* Assuming SVG sword tip is at top-left */
+            transform: translate(-5px, -5px); 
+            transition: transform 0.1s ease-out;
+            filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.8));
         }
 
-        /* Hover State for Cursor */
-        body.hovering #cursor-outline {
-            width: 65px;
-            height: 65px;
-            background-color: rgba(96, 165, 250, 0.1);
-            border-color: rgba(96, 165, 250, 1);
-            box-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
+        #cursor-sword svg {
+            width: 100%;
+            height: 100%;
+            fill: #60a5fa;
+            stroke: #1e3a8a;
+            stroke-width: 0.5;
+            transition: all 0.2s ease;
+        }
+
+        /* Hover State: Raise Sword */
+        body.hovering #cursor-sword {
+            transform: translate(-5px, -5px) scale(1.2) rotate(-10deg);
         }
         
-        /* Click Animation */
-        body.clicking #cursor-outline {
-            transform: translate(-50%, -50%) scale(0.75);
-            background-color: rgba(96, 165, 250, 0.3);
+        body.hovering #cursor-sword svg {
+            fill: #93c5fd; /* Lighter blue on hover */
+            filter: drop-shadow(0 0 12px rgba(96, 165, 250, 1));
+        }
+        
+        /* Click State: Stab/Strike */
+        body.clicking #cursor-sword {
+            transform: translate(-5px, -5px) scale(0.9) rotate(-45deg);
         }
     </style>
 </head>
 <body class="antialiased selection:bg-purple-500 selection:text-white">
 
-    <!-- Custom Cursor Elements -->
-    <div id="cursor-dot" class="hidden md:block"></div>
-    <div id="cursor-outline" class="hidden md:block"></div>
+    <!-- Custom Cursor Element (Sword) -->
+    <div id="cursor-sword" class="hidden md:block">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <!-- Sword Blade -->
+            <path d="M4.5 4.5 L10 10 L12 8 L6.5 2.5 C6 2 4.5 2 4.5 2 C4.5 2 4.5 3.5 4 4 L4.5 4.5 Z" fill="#e2e8f0"/>
+            <path d="M10 10 L15.5 15.5 L13.5 17.5 L8 12 L10 10 Z" fill="#cbd5e1"/>
+            
+            <!-- Guard -->
+            <path d="M13 8 L18 13 L19.5 11.5 L14.5 6.5 L13 8 Z" fill="#60a5fa"/>
+            
+            <!-- Handle -->
+            <path d="M16 11 L19 14 L22 11 L19 8 L16 11 Z" fill="#1e3a8a" opacity="0" /> <!-- Hidden Helper -->
+            <path d="M17 12 L20.5 15.5 C21 16 22 17 21 18 C20 19 19 18 18.5 17.5 L15 14 L17 12 Z" fill="#334155"/>
+            
+            <!-- Center Line Detail -->
+            <line x1="6" y1="4" x2="14" y2="12" stroke="#94a3b8" stroke-width="0.5" />
+        </svg>
+    </div>
 
     <!-- Three.js Background -->
     <div id="canvas-container"></div>
@@ -601,8 +612,7 @@
     <!-- Scripts -->
     <script>
         // Custom Cursor Logic
-        const cursorDot = document.getElementById('cursor-dot');
-        const cursorOutline = document.getElementById('cursor-outline');
+        const cursorSword = document.getElementById('cursor-sword');
 
         // Only activate on desktop to save resources/avoid touch issues
         if (window.matchMedia("(min-width: 768px)").matches) {
@@ -610,16 +620,10 @@
                 const posX = e.clientX;
                 const posY = e.clientY;
 
-                // Dot follows instantly
-                cursorDot.style.left = `${posX}px`;
-                cursorDot.style.top = `${posY}px`;
-
-                // Outline follows with smooth animation
-                // We only animate left/top here to avoid overwriting CSS transforms (rotation)
-                cursorOutline.animate({
-                    left: `${posX}px`,
-                    top: `${posY}px`
-                }, { duration: 500, fill: "forwards" });
+                // Move sword container
+                // Using animate for smoother trailing effect, or standard style for instant
+                cursorSword.style.left = `${posX}px`;
+                cursorSword.style.top = `${posY}px`;
             });
 
             // Hover effects
@@ -629,7 +633,7 @@
             // Click effects
             const addClickClass = () => {
                 document.body.classList.add('clicking');
-                setTimeout(() => document.body.classList.remove('clicking'), 200);
+                setTimeout(() => document.body.classList.remove('clicking'), 150); // Fast strike
             };
 
             // Attach to all interactive elements
