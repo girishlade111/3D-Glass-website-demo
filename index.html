@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass & Depth Portfolio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a; /* Fallback */
+            color: #e2e8f0;
+        }
+
+        /* 3D Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        /* Glassmorphism Base Class */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Stronger Glass for specific elements */
+        .glass-strong {
+            background: rgba(20, 25, 40, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 3D Tilt Effect on Hover */
+        .glass-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+            transform-style: preserve-3d;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-2 {
+            background: linear-gradient(135deg, #34d399, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Navigation Active State */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: #60a5fa;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Skill Tags */
+        .skill-tag {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+        .skill-tag:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-purple-500 selection:text-white">
+
+    <!-- Three.js Background -->
+    <div id="canvas-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-strong border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-2xl font-bold tracking-wider text-white">
+                        ALEX<span class="text-blue-400">.DEV</span>
+                    </a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#home" class="nav-link text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Home</a>
+                        <a href="#about" class="nav-link text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">About</a>
+                        <a href="#projects" class="nav-link text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Projects</a>
+                        <a href="#contact" class="px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/30">Contact Me</a>
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white p-2">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden glass border-t border-white/10">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">Home</a>
+                <a href="#about" class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">About</a>
+                <a href="#projects" class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">Projects</a>
+                <a href="#contact" class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 pt-20">
+        
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            <div class="max-w-4xl mx-auto text-center relative z-10">
+                <div class="glass p-8 md:p-12 rounded-3xl animate-fade-in-up">
+                    <span class="inline-block py-1 px-3 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-6 border border-blue-500/30">
+                        Welcome to my universe
+                    </span>
+                    <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white leading-tight">
+                        Building Digital <br />
+                        <span class="text-gradient">Experiences</span> in 3D
+                    </h1>
+                    <p class="mt-4 text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                        I'm Alex, a Creative Developer specializing in building immersive web applications with modern technologies and stunning visuals.
+                    </p>
+                    <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="#projects" class="group px-8 py-3 rounded-full bg-white text-gray-900 font-bold text-lg transition-all hover:bg-gray-100 shadow-lg hover:shadow-white/20 flex items-center justify-center gap-2">
+                            View Work <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#contact" class="px-8 py-3 rounded-full glass hover:bg-white/10 text-white font-bold text-lg transition-all border border-white/20">
+                            Get in Touch
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Decorative Elements -->
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <a href="#about" class="text-white/50 hover:text-white transition-colors">
+                    <i class="fas fa-chevron-down text-2xl"></i>
+                </a>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-24 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <!-- Glass Card Image Placeholder -->
+                    <div class="glass-card rounded-3xl p-2 relative h-96 w-full flex items-center justify-center overflow-hidden group">
+                        <div class="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 z-0"></div>
+                        <i class="fas fa-code text-9xl text-white/10 group-hover:scale-110 transition-transform duration-500 relative z-10"></i>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 glass-strong translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                            <p class="text-white font-semibold">Passionate Coder</p>
+                            <p class="text-gray-400 text-sm">Always learning, always creating.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">
+                            Behind the <span class="text-gradient-2">Code</span>
+                        </h2>
+                        <div class="glass p-8 rounded-2xl">
+                            <p class="text-gray-300 mb-6 leading-relaxed">
+                                I bridge the gap between design and engineering. My philosophy is simple: create things that look beautiful and work perfectly. With a background in both UI/UX and Full Stack development, I bring a unique perspective to every project.
+                            </p>
+                            <p class="text-gray-300 mb-8 leading-relaxed">
+                                Currently tinkering with WebGL, React Three Fiber, and AI integration to push the boundaries of what's possible in a browser.
+                            </p>
+                            
+                            <!-- Skills -->
+                            <h3 class="text-lg font-semibold text-white mb-4">Tech Stack</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <span class="skill-tag px-3 py-1 rounded-lg text-sm text-blue-200">React</span>
+                                <span class="skill-tag px-3 py-1 rounded-lg text-sm text-blue-200">Three.js</span>
+                                <span class="skill-tag px-3 py-1 rounded-lg text-sm text-blue-200">Tailwind</span>
+                                <span class="skill-tag px-3 py-1 rounded-lg text-sm text-blue-200">Node.js</span>
+                                <span class="skill-tag px-3 py-1 rounded-lg text-sm text-blue-200">TypeScript</span>
+                                <span class="skill-tag px-3 py-1 rounded-lg text-sm text-blue-200">Figma</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-24 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Featured <span class="text-gradient">Projects</span></h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto">A selection of my recent work, featuring glassmorphism, 3D interactivity, and clean code.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Project 1 -->
+                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col h-full">
+                        <div class="h-48 bg-gradient-to-r from-blue-900 to-slate-900 flex items-center justify-center relative overflow-hidden group">
+                             <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                             <i class="fas fa-chart-line text-6xl text-blue-400/50 group-hover:scale-110 transition-transform duration-500"></i>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col">
+                            <h3 class="text-xl font-bold text-white mb-2">Finance Dashboard</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">A real-time cryptocurrency dashboard featuring data visualization with D3.js and a glass UI.</p>
+                            <div class="flex gap-2 mb-4">
+                                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">Vue.js</span>
+                                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">D3</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-auto">
+                                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Project</a>
+                                <div class="flex gap-3">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 2 -->
+                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col h-full">
+                        <div class="h-48 bg-gradient-to-r from-purple-900 to-indigo-900 flex items-center justify-center relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                            <i class="fas fa-gamepad text-6xl text-purple-400/50 group-hover:scale-110 transition-transform duration-500"></i>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col">
+                            <h3 class="text-xl font-bold text-white mb-2">Neon City Game</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">Browser-based cyberpunk racing game built with Three.js. Features procedural city generation.</p>
+                            <div class="flex gap-2 mb-4">
+                                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">Three.js</span>
+                                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">React</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-auto">
+                                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Project</a>
+                                <div class="flex gap-3">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 3 -->
+                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col h-full">
+                        <div class="h-48 bg-gradient-to-r from-emerald-900 to-teal-900 flex items-center justify-center relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                            <i class="fas fa-robot text-6xl text-emerald-400/50 group-hover:scale-110 transition-transform duration-500"></i>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col">
+                            <h3 class="text-xl font-bold text-white mb-2">AI Chat Assistant</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">An intelligent chat interface connecting to LLMs with a custom context-aware memory system.</p>
+                            <div class="flex gap-2 mb-4">
+                                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">OpenAI API</span>
+                                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">Node</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-auto">
+                                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Project</a>
+                                <div class="flex gap-3">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 pb-32">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="glass p-8 md:p-12 rounded-3xl text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Let's Create <span class="text-gradient-2">Something Amazing</span></h2>
+                    <p class="text-gray-300 mb-10 max-w-lg mx-auto">Whether you have a question, a project proposal, or just want to say hi, my inbox is always open.</p>
+                    
+                    <form class="max-w-md mx-auto space-y-4 text-left">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                            <input type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/10 transition-all" placeholder="John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <input type="email" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/10 transition-all" placeholder="john@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                            <textarea rows="4" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/10 transition-all" placeholder="Tell me about your project..."></textarea>
+                        </div>
+                        <button type="button" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-1 transition-all">
+                            Send Message
+                        </button>
+                    </form>
+
+                    <div class="mt-12 flex justify-center space-x-8">
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl transition-transform hover:scale-110"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl transition-transform hover:scale-110"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl transition-transform hover:scale-110"><i class="fab fa-github"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl transition-transform hover:scale-110"><i class="fab fa-dribbble"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="glass-strong py-8 text-center border-t border-white/5">
+            <p class="text-gray-500 text-sm">© 2023 Alex.Dev. Built with Three.js & Tailwind.</p>
+        </footer>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile Menu Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // THREE.JS BACKGROUND ANIMATION
+        const initThreeJS = () => {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene setup
+            const scene = new THREE.Scene();
+            // Fog to fade objects in distance
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.002);
+
+            // Camera setup
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x60a5fa, 2, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            const pointLight2 = new THREE.PointLight(0xc084fc, 2, 100);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            // Geometry Groups
+            const objects = [];
+            
+            // Helper function to create abstract shapes
+            const createShape = (geometry, color, position) => {
+                const material = new THREE.MeshStandardMaterial({
+                    color: color,
+                    roughness: 0.1,
+                    metalness: 0.2,
+                    transparent: true,
+                    opacity: 0.8,
+                    wireframe: false
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(position.x, position.y, position.z);
+                
+                // Add random rotation speed
+                mesh.userData = {
+                    rotSpeedX: (Math.random() - 0.5) * 0.01,
+                    rotSpeedY: (Math.random() - 0.5) * 0.01,
+                    floatSpeed: (Math.random() * 0.005) + 0.002,
+                    floatOffset: Math.random() * Math.PI * 2
+                };
+                
+                scene.add(mesh);
+                objects.push(mesh);
+            };
+
+            // Add Torus Knot (Main Center Piece, further back)
+            const torusKnotGeo = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            const torusMat = new THREE.MeshStandardMaterial({
+                 color: 0x3b82f6, 
+                 wireframe: true,
+                 transparent: true,
+                 opacity: 0.1
+            });
+            const torusKnot = new THREE.Mesh(torusKnotGeo, torusMat);
+            torusKnot.position.z = -20;
+            scene.add(torusKnot);
+
+            // Add scattered geometric shapes
+            for (let i = 0; i < 15; i++) {
+                const type = Math.floor(Math.random() * 3);
+                let geometry;
+                let color = Math.random() > 0.5 ? 0x60a5fa : 0xc084fc; // Blue or Purple
+
+                if (type === 0) geometry = new THREE.IcosahedronGeometry(Math.random() * 2 + 1, 0);
+                else if (type === 1) geometry = new THREE.OctahedronGeometry(Math.random() * 2 + 1, 0);
+                else geometry = new THREE.TetrahedronGeometry(Math.random() * 2 + 1, 0);
+
+                const x = (Math.random() - 0.5) * 60;
+                const y = (Math.random() - 0.5) * 60;
+                const z = (Math.random() - 0.5) * 40 - 10; // Keep mostly behind
+
+                createShape(geometry, color, {x, y, z});
+            }
+
+            // Mouse Interaction
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - windowHalfX);
+                mouseY = (event.clientY - windowHalfY);
+            });
+
+            // Animation Loop
+            const clock = new THREE.Clock();
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+
+                const elapsedTime = clock.getElapsedTime();
+
+                targetX = mouseX * 0.001;
+                targetY = mouseY * 0.001;
+
+                // Rotate large wireframe torus
+                torusKnot.rotation.x += 0.002;
+                torusKnot.rotation.y += 0.002;
+
+                // Move and rotate small objects
+                objects.forEach((obj, i) => {
+                    obj.rotation.x += obj.userData.rotSpeedX;
+                    obj.rotation.y += obj.userData.rotSpeedY;
+                    
+                    // Floating effect
+                    obj.position.y += Math.sin(elapsedTime * obj.userData.floatSpeed + obj.userData.floatOffset) * 0.02;
+
+                    // Mouse parallax influence
+                    obj.rotation.x += 0.05 * (targetY - obj.rotation.x) * 0.1;
+                    obj.rotation.y += 0.05 * (targetX - obj.rotation.y) * 0.1;
+                });
+
+                // Camera subtle movement
+                camera.position.x += (mouseX * 0.01 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 0.01 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            };
+
+            animate();
+
+            // Resize Handler
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        // Initialize Three.js when DOM is ready
+        document.addEventListener('DOMContentLoaded', initThreeJS);
+
+        // Simple smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
